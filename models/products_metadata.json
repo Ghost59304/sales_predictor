@@ -1,0 +1,107 @@
+[
+  {
+    "product_id": "PRD-101",
+    "name": "Smartphone Pro Max",
+    "category": "Electronics",
+    "base_price": 999.0,
+    "cost_price": 650.0
+  },
+  {
+    "product_id": "PRD-102",
+    "name": "Ultra Slim Laptop 15\"",
+    "category": "Electronics",
+    "base_price": 1299.0,
+    "cost_price": 880.0
+  },
+  {
+    "product_id": "PRD-103",
+    "name": "Wireless Noise-Cancelling ANC Headphones",
+    "category": "Audio & Accessories",
+    "base_price": 249.0,
+    "cost_price": 140.0
+  },
+  {
+    "product_id": "PRD-104",
+    "name": "4K Ultra HD Smart LED TV 55\"",
+    "category": "Electronics",
+    "base_price": 649.0,
+    "cost_price": 420.0
+  },
+  {
+    "product_id": "PRD-105",
+    "name": "Smart Fitness Tracker Watch",
+    "category": "Audio & Accessories",
+    "base_price": 179.0,
+    "cost_price": 95.0
+  },
+  {
+    "product_id": "PRD-106",
+    "name": "Running Cushion Pro Shoes",
+    "category": "Apparel & Footwear",
+    "base_price": 119.0,
+    "cost_price": 55.0
+  },
+  {
+    "product_id": "PRD-107",
+    "name": "Premium Cotton Oxford Casual Shirt",
+    "category": "Apparel & Footwear",
+    "base_price": 49.0,
+    "cost_price": 20.0
+  },
+  {
+    "product_id": "PRD-108",
+    "name": "Classic Stretch Denim Jeans",
+    "category": "Apparel & Footwear",
+    "base_price": 69.0,
+    "cost_price": 32.0
+  },
+  {
+    "product_id": "PRD-109",
+    "name": "Digital Air Fryer Deluxe 5.5L",
+    "category": "Home & Kitchen",
+    "base_price": 129.0,
+    "cost_price": 70.0
+  },
+  {
+    "product_id": "PRD-110",
+    "name": "Barista Espresso & Cappuccino Machine",
+    "category": "Home & Kitchen",
+    "base_price": 299.0,
+    "cost_price": 175.0
+  },
+  {
+    "product_id": "PRD-111",
+    "name": "Ergonomic Lumbar High-Back Office Chair",
+    "category": "Home & Kitchen",
+    "base_price": 219.0,
+    "cost_price": 120.0
+  },
+  {
+    "product_id": "PRD-112",
+    "name": "Organic Herbal Green Tea 100pk",
+    "category": "Groceries & FMCG",
+    "base_price": 24.0,
+    "cost_price": 9.0
+  },
+  {
+    "product_id": "PRD-113",
+    "name": "Cold-Pressed Extra Virgin Olive Oil 1L",
+    "category": "Groceries & FMCG",
+    "base_price": 29.0,
+    "cost_price": 14.0
+  },
+  {
+    "product_id": "PRD-114",
+    "name": "Hydrating Hyaluronic Facial Serum 50ml",
+    "category": "Health & Beauty",
+    "base_price": 39.0,
+    "cost_price": 12.0
+  },
+  {
+    "product_id": "PRD-115",
+    "name": "Cordless Handheld Vacuum Cleaner",
+    "category": "Home & Kitchen",
+    "base_price": 159.0,
+    "cost_price": 85.0
+  }
+]

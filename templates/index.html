@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Sales Forecasting & Demand Planning Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-600 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+            <i class="fa-solid fa-chart-line text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xl font-bold tracking-tight text-slate-900">Sales<span class="text-indigo-600">Forecaster</span></span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium">Predictive Demand Intelligence & Revenue Forecasting</p>
+          </div>
+        </div>
+
+        <!-- Quick Status & Export -->
+        <div class="flex items-center space-x-3">
+          <a href="/api/export_sample_csv" class="inline-flex items-center px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition shadow-sm">
+            <i class="fa-solid fa-download mr-1.5 text-indigo-600"></i>
+            Sample CSV
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-navigation Tabs -->
+    <div class="border-t border-slate-200 bg-white/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto py-2 scrollbar-none" id="dashboardTabs">
+          <button onclick="switchTab('overview')" class="tab-btn active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 text-indigo-600 bg-indigo-50 border-b-2 border-indigo-600" data-tab="overview">
+            <i class="fa-solid fa-chart-pie text-indigo-600"></i>
+            <span>Executive Analytics</span>
+          </button>
+          <button onclick="switchTab('predict')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100" data-tab="predict">
+            <i class="fa-solid fa-calculator"></i>
+            <span>Single Prediction</span>
+          </button>
+          <button onclick="switchTab('horizon')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100" data-tab="horizon">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Horizon Demand Planner</span>
+          </button>
+          <button onclick="switchTab('models')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100" data-tab="models">
+            <i class="fa-solid fa-microchip"></i>
+            <span>ML Models & Metrics</span>
+          </button>
+          <button onclick="switchTab('dataset')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100" data-tab="dataset">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Data Upload & Retrain</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- KPI Summary Row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="kpiCardsContainer">
+      <!-- Card 1: Total Revenue -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sales Volume</p>
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+            <i class="fa-solid fa-dollar-sign text-sm"></i>
+          </div>
+        </div>
+        <h3 class="text-2xl font-black mt-2 text-slate-900" id="kpiTotalRevenue">$70.97M</h3>
+        <div class="flex items-center mt-2 text-xs text-emerald-600 font-semibold">
+          <i class="fa-solid fa-arrow-trend-up mr-1"></i>
+          <span>+9.2% annual growth trend</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Total Units Sold -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Units Transacted</p>
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+            <i class="fa-solid fa-boxes-stacked text-sm"></i>
+          </div>
+        </div>
+        <h3 class="text-2xl font-black mt-2 text-slate-900" id="kpiTotalUnits">444,855</h3>
+        <div class="flex items-center mt-2 text-xs text-slate-500">
+          <span id="kpiDateRange">Jan 2023 - Nov 2026 (14,914 records)</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Avg Order Value -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Order Value</p>
+          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <i class="fa-solid fa-receipt text-sm"></i>
+          </div>
+        </div>
+        <h3 class="text-2xl font-black mt-2 text-slate-900" id="kpiAvgOrderValue">$4,758.74</h3>
+        <div class="flex items-center mt-2 text-xs text-amber-600 font-medium">
+          <span>Gross Margin: ~36.8%</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Forecast Model Accuracy -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Top Model Accuracy</p>
+          <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+            <i class="fa-solid fa-bullseye text-sm"></i>
+          </div>
+        </div>
+        <h3 class="text-2xl font-black mt-2 text-slate-900" id="kpiModelR2">96.7% R²</h3>
+        <div class="flex items-center mt-2 text-xs text-purple-600 font-semibold">
+          <span>Gradient Boosting (MAPE: 9.1%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: EXECUTIVE ANALYTICS -->
+    <!-- ======================================================== -->
+    <div id="tab-overview" class="tab-content space-y-6">
+      
+      <!-- Sales Trend & Top Products Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Monthly Revenue Trend Chart (2 columns) -->
+        <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Historical Sales & Revenue Trajectory</h2>
+              <p class="text-xs text-slate-500">Monthly aggregate sales performance with seasonal Q4 peaks</p>
+            </div>
+            <div class="flex items-center space-x-2 mt-2 sm:mt-0">
+              <button onclick="setTrendMetric('revenue')" id="trendRevBtn" class="px-2.5 py-1 text-xs rounded-md bg-indigo-600 text-white font-semibold shadow-sm">Revenue ($)</button>
+              <button onclick="setTrendMetric('units')" id="trendUnitsBtn" class="px-2.5 py-1 text-xs rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium">Units</button>
+              <button onclick="setTrendMetric('profit')" id="trendProfitBtn" class="px-2.5 py-1 text-xs rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium">Profit ($)</button>
+            </div>
+          </div>
+          <div class="h-72 w-full">
+            <canvas id="monthlyTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Selling Products Leaderboard -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-base font-bold text-slate-900">Top Revenue Drivers</h2>
+              <span class="text-xs font-semibold text-indigo-600">Historical Rank</span>
+            </div>
+            <div class="space-y-2.5" id="topProductsList">
+              <div class="animate-pulse space-y-2">
+                <div class="h-10 bg-slate-100 rounded"></div>
+                <div class="h-10 bg-slate-100 rounded"></div>
+                <div class="h-10 bg-slate-100 rounded"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
+            <span>Promotion Lift:</span>
+            <span class="text-emerald-600 font-bold" id="promoBoostText">+48% unit sales on promo days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual vs Predicted ML Validation Chart -->
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-base font-bold text-slate-900">Ground Truth vs. ML Model Predictions</h2>
+              <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-semibold">Validation Horizon</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Comparing actual recorded daily sales vs. model predictions across historical test batches</p>
+          </div>
+          <div class="text-xs text-slate-600 mt-2 sm:mt-0 font-medium">
+            Model: <span class="text-indigo-600 font-bold" id="valModelName">Gradient Boosting Regressor</span>
+          </div>
+        </div>
+        <div class="h-72 w-full">
+          <canvas id="actualVsPredChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Secondary Analytics Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Category Revenue Share -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Category Share</h2>
+          <p class="text-xs text-slate-500 mb-4">Revenue distribution across categories</p>
+          <div class="h-56 flex items-center justify-center">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Regional Sales -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Regional Demand</h2>
+          <p class="text-xs text-slate-500 mb-4">Total sales revenue across geographical zones</p>
+          <div class="h-56">
+            <canvas id="regionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Day of Week Pattern -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Day of Week Seasonality</h2>
+          <p class="text-xs text-slate-500 mb-4">Average unit volume per day (Mon - Sun)</p>
+          <div class="h-56">
+            <canvas id="dowChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: INTERACTIVE SINGLE PREDICTION -->
+    <!-- ======================================================== -->
+    <div id="tab-predict" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div class="border-b border-slate-200 pb-4 mb-6">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 mr-2.5"></i>
+            Single Sales Forecast Calculator
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Specify transaction variables, calendar factors, and promotional settings to generate real-time quantity and revenue predictions with inventory risk guidance.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Input Form Column (7 cols) -->
+          <div class="lg:col-span-7 space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Date Picker -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Forecast Target Date</label>
+                <div class="relative">
+                  <input type="date" id="predDate" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1" id="predDateSubtext">Includes day-of-week and holiday seasonality detection.</p>
+              </div>
+
+              <!-- Product Selector -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Product</label>
+                <select id="predProduct" onchange="onProductSelectChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                  <!-- Populated by JS -->
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1" id="predCategoryDisplay">Category: Electronics</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Region -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Geographic Region</label>
+                <select id="predRegion" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                  <option value="North">North</option>
+                  <option value="South">South</option>
+                  <option value="East">East</option>
+                  <option value="West">West</option>
+                  <option value="Central">Central</option>
+                </select>
+              </div>
+
+              <!-- Store Type / Channel -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Sales Channel / Store Type</label>
+                <select id="predStoreType" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                  <option value="Online Flagship">Online Flagship (High Traffic)</option>
+                  <option value="Retail Store">Retail Store</option>
+                  <option value="Direct-to-Consumer">Direct-to-Consumer</option>
+                  <option value="Superstore Partner">Superstore Partner</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Unit Price ($) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Base Unit Price ($)</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">$</span>
+                  <input type="number" step="0.01" min="1" id="predUnitPrice" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+              </div>
+
+              <!-- Model Selector -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Forecasting Model</label>
+                <select id="predModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition">
+                  <option value="Gradient Boosting" selected>Gradient Boosting (R² 0.967) - Recommended</option>
+                  <option value="Random Forest">Random Forest Regressor (R² 0.956)</option>
+                  <option value="Decision Tree">Decision Tree Regressor (R² 0.930)</option>
+                  <option value="Linear Regression">Linear Regression (R² 0.864)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Promotion & Discount Slider -->
+            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold text-slate-800 flex items-center">
+                  <i class="fa-solid fa-tags text-indigo-600 mr-2"></i>
+                  Promotional Campaign & Discount
+                </label>
+                <span id="discountValDisplay" class="text-xs font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">0% Off</span>
+              </div>
+              <input type="range" min="0" max="40" step="5" value="0" id="predDiscountRange" oninput="updateDiscountSlider(this.value)" class="w-full accent-indigo-600 cursor-pointer">
+              <div class="flex justify-between text-[11px] text-slate-500 mt-1.5 font-medium">
+                <span>0% (Regular Price)</span>
+                <span>15% (Weekend Flash)</span>
+                <span>25% (Seasonal Clearance)</span>
+                <span>40% (Mega Sale)</span>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button onclick="executeSinglePrediction()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md shadow-indigo-500/20 transition flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Generate Forecast</span>
+            </button>
+          </div>
+
+          <!-- Output Results Column (5 cols) -->
+          <div class="lg:col-span-5 bg-gradient-to-b from-slate-50 to-indigo-50/40 border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Forecast Output</span>
+                <span id="outputModelBadge" class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-bold">Gradient Boosting</span>
+              </div>
+
+              <!-- Main Predicted Quantity Card -->
+              <div class="text-center py-4 bg-white rounded-xl border border-slate-200 shadow-sm mb-4">
+                <p class="text-xs text-slate-500 uppercase font-semibold">Estimated Demand (Units)</p>
+                <div class="text-5xl font-black text-slate-900 mt-1" id="resQuantity">--</div>
+                <p class="text-xs text-indigo-600 font-semibold mt-1" id="resConfidence">95% Range: [ -- to -- units ]</p>
+              </div>
+
+              <!-- Revenue & Profit Breakdown -->
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                  <p class="text-[11px] text-slate-500 font-medium">Forecasted Revenue</p>
+                  <p class="text-lg font-bold text-emerald-600 mt-0.5" id="resRevenue">$--</p>
+                  <p class="text-[10px] text-slate-500" id="resEffPrice">Eff. Price: $--</p>
+                </div>
+                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                  <p class="text-[11px] text-slate-500 font-medium">Estimated Gross Profit</p>
+                  <p class="text-lg font-bold text-indigo-600 mt-0.5" id="resProfit">$--</p>
+                  <p class="text-[10px] text-emerald-600 font-semibold" id="resMargin">Margin: --%</p>
+                </div>
+              </div>
+
+              <!-- Inventory & Supply Chain Recommendation -->
+              <div class="bg-white border border-indigo-200 rounded-xl p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-warehouse text-indigo-600 mr-1.5"></i>
+                    Supply Chain Recommendation
+                  </span>
+                  <span id="resRiskBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Low Risk</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs text-slate-700 my-2">
+                  <div>Buffer Safety Stock: <strong class="text-slate-900 font-bold" id="resSafetyStock">--</strong> units</div>
+                  <div>Reorder Point: <strong class="text-slate-900 font-bold" id="resReorderPoint">--</strong> units</div>
+                </div>
+                <p class="text-xs text-slate-600 mt-2 italic bg-slate-50 p-2.5 rounded border border-slate-200" id="resInventoryAction">
+                  Click "Generate Forecast" to calculate demand planning parameters.
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 text-[11px] text-slate-500 flex justify-between items-center">
+              <span>Timestamp: <span id="resTimestamp" class="font-medium text-slate-700">Ready</span></span>
+              <span>Confidence: 95%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: MULTI-DAY HORIZON DEMAND PLANNER -->
+    <!-- ======================================================== -->
+    <div id="tab-horizon" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center">
+              <i class="fa-solid fa-chart-line text-indigo-600 mr-2.5"></i>
+              Multi-Day Demand Horizon Simulator
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">
+              Project multi-week product demand curves, peak sales dates, and inventory replenishment buffers.
+            </p>
+          </div>
+          <!-- Horizon Controls -->
+          <div class="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Horizon Window</label>
+              <select id="hzDays" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500">
+                <option value="7">7 Days (Short Term)</option>
+                <option value="14">14 Days (Bi-Weekly)</option>
+                <option value="30" selected>30 Days (Monthly Outlook)</option>
+                <option value="60">60 Days (Bi-Monthly)</option>
+                <option value="90">90 Days (Quarterly)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Scenario</label>
+              <select id="hzScenario" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500">
+                <option value="promo_weekends" selected>Weekend Promos (15% off)</option>
+                <option value="none">Baseline (No Discount)</option>
+                <option value="aggressive">Aggressive Campaign (25% off)</option>
+              </select>
+            </div>
+            <div class="pt-4">
+              <button onclick="runHorizonForecast()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                Simulate Horizon
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aggregate Horizon KPI Pills -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <span class="text-[11px] text-slate-500 font-medium">Total Projected Units</span>
+            <p class="text-xl font-bold text-slate-900 mt-1" id="hzAggUnits">--</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <span class="text-[11px] text-slate-500 font-medium">Total Projected Revenue</span>
+            <p class="text-xl font-bold text-emerald-600 mt-1" id="hzAggRevenue">$--</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <span class="text-[11px] text-slate-500 font-medium">Peak Demand Day</span>
+            <p class="text-xl font-bold text-amber-600 mt-1" id="hzPeakDate">--</p>
+            <span class="text-[10px] text-slate-500 font-medium" id="hzPeakUnits">-- units peak</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <span class="text-[11px] text-slate-500 font-medium">Recommended Total Stock</span>
+            <p class="text-xl font-bold text-indigo-600 mt-1" id="hzRecommendedStock">-- units</p>
+            <span class="text-[10px] text-indigo-600 font-medium">Incl. 15% safety buffer</span>
+          </div>
+        </div>
+
+        <!-- Interactive Horizon Forecast Chart -->
+        <div class="h-80 w-full mb-6">
+          <canvas id="horizonChart"></canvas>
+        </div>
+
+        <!-- Table View Collapsible -->
+        <div class="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800">Daily Forecast Timeline Breakdown</span>
+            <button onclick="exportHorizonTableToCSV()" class="text-xs text-indigo-600 hover:text-indigo-700 font-semibold flex items-center">
+              <i class="fa-solid fa-file-arrow-down mr-1"></i>
+              Export Timeline CSV
+            </button>
+          </div>
+          <div class="max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-xs text-slate-700" id="horizonTable">
+              <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] sticky top-0 border-b border-slate-200">
+                <tr>
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5">Day</th>
+                  <th class="p-2.5">Campaign</th>
+                  <th class="p-2.5 text-right">Predicted Units</th>
+                  <th class="p-2.5 text-right">Confidence (90%)</th>
+                  <th class="p-2.5 text-right">Projected Revenue</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200" id="horizonTableBody">
+                <tr>
+                  <td colspan="6" class="p-4 text-center text-slate-400">Click "Simulate Horizon" to generate projection table.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: ML MODELS & BENCHMARKS -->
+    <!-- ======================================================== -->
+    <div id="tab-models" class="tab-content hidden space-y-6">
+      <!-- Model Benchmarking Table -->
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div class="border-b border-slate-200 pb-4 mb-6">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-microchip text-indigo-600 mr-2.5"></i>
+            Machine Learning Model Benchmark Matrix
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Comparative performance of regression algorithms evaluated on held-out test data (80/20 train-test split).
+          </p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-800">
+            <thead class="bg-slate-100 text-slate-600 uppercase text-xs border-b border-slate-200">
+              <tr>
+                <th class="p-3">Model Architecture</th>
+                <th class="p-3 text-center">Status</th>
+                <th class="p-3 text-right">R² Score (Units)</th>
+                <th class="p-3 text-right">RMSE</th>
+                <th class="p-3 text-right">MAE</th>
+                <th class="p-3 text-right">MAPE (%)</th>
+                <th class="p-3 text-right">Revenue R²</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200" id="modelsTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Feature Importance & Model Insights -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Feature Importance Bar Chart -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Feature Importance Ranking</h2>
+          <p class="text-xs text-slate-500 mb-4">Relative predictive weight derived from tree ensemble models</p>
+          <div class="h-72">
+            <canvas id="featureImportanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Model Evaluation Explanations -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-900 mb-1">Key Findings & Methodology Insights</h2>
+          <div class="space-y-3 text-xs text-slate-700 leading-relaxed">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <strong class="text-slate-900 block mb-1">1. Gradient Boosting & Random Forest Superiority:</strong>
+              Both ensemble architectures achieved over 95% R², capturing non-linear pricing elasticity and seasonal holiday demand variations far better than traditional linear models.
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <strong class="text-slate-900 block mb-1">2. Dominant Feature Drivers:</strong>
+              <code class="text-indigo-600 font-semibold">Unit_Price</code> (48.0%) and <code class="text-indigo-600 font-semibold">Holiday_Season</code> (16.6%) are the strongest predictors, followed by Product Category and Promotional discounts.
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <strong class="text-slate-900 block mb-1">3. Generalization on Unseen Data:</strong>
+              Low MAPE of ~9.1% ensures that forecast predictions provide reliable baseline inputs for warehouse stock planning without risking heavy overstocking or stockouts.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: DATA UPLOAD & RETRAIN -->
+    <!-- ======================================================== -->
+    <div id="tab-dataset" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div class="border-b border-slate-200 pb-4 mb-6">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-cloud-arrow-up text-indigo-600 mr-2.5"></i>
+            Custom Dataset Upload & Model Retraining
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Feed new sales records to update the database and retrain the machine learning pipelines on live enterprise transactions.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Upload Area (7 cols) -->
+          <div class="lg:col-span-7 space-y-4">
+            <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 text-center cursor-pointer bg-slate-50/70 hover:bg-indigo-50/40 transition">
+              <i class="fa-solid fa-file-csv text-4xl text-indigo-600 mb-3"></i>
+              <p class="text-sm font-bold text-slate-800">Click or drag & drop custom sales CSV file</p>
+              <p class="text-xs text-slate-500 mt-1">Accepts CSV files with columns: Date, Product_Name, Category, Unit_Price, Quantity_Sold, Sales_Amount</p>
+              <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileSelected(event)">
+            </div>
+
+            <div id="fileInfoCard" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-lines text-indigo-600"></i>
+                <span class="text-xs font-semibold text-slate-800" id="selectedFileName">filename.csv</span>
+              </div>
+              <button onclick="uploadAndRetrain()" id="uploadBtn" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Upload & Retrain</span>
+              </button>
+            </div>
+
+            <!-- Upload Status Banner -->
+            <div id="uploadStatusMessage" class="hidden text-xs p-4 rounded-xl border"></div>
+
+            <!-- Uploaded Dataset Preview Table -->
+            <div id="uploadedPreviewSection" class="hidden mt-4 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+              <div class="px-3.5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800">
+                  <i class="fa-solid fa-table text-indigo-600 mr-1.5"></i>
+                  Uploaded Data Sample Preview
+                </span>
+                <span class="text-[10px] text-slate-500 font-medium">First 8 records</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] border-b border-slate-200">
+                    <tr>
+                      <th class="p-2.5">Date</th>
+                      <th class="p-2.5">Product</th>
+                      <th class="p-2.5">Category</th>
+                      <th class="p-2.5 text-right">Price</th>
+                      <th class="p-2.5 text-right">Qty</th>
+                      <th class="p-2.5 text-right">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="uploadedPreviewBody" class="divide-y divide-slate-200 text-slate-700">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template & Guidelines (5 cols) -->
+          <div class="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-xl p-5">
+            <h3 class="text-sm font-bold text-slate-900 mb-2">Required CSV Schema</h3>
+            <p class="text-xs text-slate-500 mb-4">Ensure your dataset contains the following column headers:</p>
+            
+            <ul class="text-xs text-slate-700 space-y-1.5 list-disc list-inside mb-5">
+              <li><code class="text-indigo-600 font-semibold">Date</code> (e.g. 2026-11-20)</li>
+              <li><code class="text-indigo-600 font-semibold">Product_Name</code> (Text name)</li>
+              <li><code class="text-indigo-600 font-semibold">Category</code> (Product domain)</li>
+              <li><code class="text-indigo-600 font-semibold">Unit_Price</code> (Numeric price)</li>
+              <li><code class="text-indigo-600 font-semibold">Quantity_Sold</code> (Integer units)</li>
+              <li><code class="text-indigo-600 font-semibold">Sales_Amount</code> (Total revenue)</li>
+            </ul>
+
+            <a href="/api/export_sample_csv" class="inline-flex items-center px-3.5 py-2 bg-white hover:bg-slate-100 text-indigo-600 text-xs font-semibold rounded-lg border border-slate-300 transition shadow-sm">
+              <i class="fa-solid fa-download mr-1.5"></i>
+              Download Sample CSV Template
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Clean Corporate Footer -->
+  <footer class="border-t border-slate-200 bg-white py-4 text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="font-medium text-slate-600">
+        SalesForecaster • Enterprise Predictive Sales Analytics & Inventory Demand Planning Platform
+      </p>
+      <div class="flex items-center space-x-3 text-slate-400">
+        <span>Machine Learning Engine Active</span>
+        <span>•</span>
+        <span>High-Precision Demand Modeling</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Script -->
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

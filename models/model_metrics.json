@@ -1,0 +1,101 @@
+{
+  "models": {
+    "Linear Regression": {
+      "r2_score": 0.8636,
+      "rmse": 8.128,
+      "mae": 5.352,
+      "mape": 24.05,
+      "rev_rmse": 2836.55,
+      "rev_r2": 0.5584,
+      "is_best": false
+    },
+    "Decision Tree": {
+      "r2_score": 0.9304,
+      "rmse": 5.805,
+      "mae": 3.44,
+      "mape": 11.61,
+      "rev_rmse": 977.94,
+      "rev_r2": 0.9475,
+      "is_best": false
+    },
+    "Random Forest": {
+      "r2_score": 0.9564,
+      "rmse": 4.595,
+      "mae": 2.875,
+      "mape": 10.1,
+      "rev_rmse": 826.14,
+      "rev_r2": 0.9625,
+      "is_best": false
+    },
+    "Gradient Boosting": {
+      "r2_score": 0.967,
+      "rmse": 3.997,
+      "mae": 2.571,
+      "mape": 9.1,
+      "rev_rmse": 730.73,
+      "rev_r2": 0.9707,
+      "is_best": true
+    }
+  },
+  "feature_importances": [
+    {
+      "feature": "Unit_Price",
+      "importance": 0.4804
+    },
+    {
+      "feature": "Holiday_Season",
+      "importance": 0.1665
+    },
+    {
+      "feature": "Category_Groceries & FMCG",
+      "importance": 0.0643
+    },
+    {
+      "feature": "Discount_Percent",
+      "importance": 0.0412
+    },
+    {
+      "feature": "DayOfWeek",
+      "importance": 0.0338
+    },
+    {
+      "feature": "Month",
+      "importance": 0.0328
+    },
+    {
+      "feature": "DOW_Sin",
+      "importance": 0.0317
+    },
+    {
+      "feature": "Store_Type_Online Flagship",
+      "importance": 0.0247
+    },
+    {
+      "feature": "IsWeekend",
+      "importance": 0.0237
+    },
+    {
+      "feature": "Quarter",
+      "importance": 0.0177
+    },
+    {
+      "feature": "Category_Audio & Accessories",
+      "importance": 0.0174
+    },
+    {
+      "feature": "Year",
+      "importance": 0.0167
+    }
+  ],
+  "dataset_summary": {
+    "total_records": 14914,
+    "date_start": "2023-01-01",
+    "date_end": "2026-11-15",
+    "total_revenue": 70971842.35,
+    "total_units_sold": 444855,
+    "average_order_value": 4758.74,
+    "total_gross_profit": 26156371.35,
+    "best_model": "Gradient Boosting"
+  },
+  "last_trained": "2026-11-22 15:22:29"
+}
